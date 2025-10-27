@@ -10,7 +10,6 @@
 #include "LSM6DS3.h"
 #include "Wire.h"
 #include "SPI.h"
-#include <ArduinoBLE.h>
 
 // Which pin on the Arduino is connected to the NeoPixels?
 #define PIN        5 // On Trinket or Gemma, suggest changing this to 1
@@ -24,9 +23,6 @@
 // strandtest example for more information on possible values.
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 LSM6DS3Core myIMU(I2C_MODE, 0x6A);
-BLEService ledService("19B10000-E8F2-537E-4F6C-D104768A1214"); // Bluetooth® Low Energy LED Service
-// Bluetooth® Low Energy LED Switch Characteristic - custom 128-bit UUID, read and writable by central
-BLEByteCharacteristic switchCharacteristic("19B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);
 
 #define DELAYVAL 40 // Time (in milliseconds) to pause between pixels
 uint8_t i;
@@ -215,31 +211,6 @@ do {
 
 
   
-
-  // begin initialization
-  if (!BLE.begin()) {
-    Serial.println("starting Bluetooth® Low Energy module failed!");
-
-    while (1);
-  }
-
-  // set advertised local name and service UUID:
-  BLE.setLocalName("LED");
-  BLE.setAdvertisedService(ledService);
-
-  // add the characteristic to the service
-  ledService.addCharacteristic(switchCharacteristic);
-
-  // add service
-  BLE.addService(ledService);
-
-  // set the initial value for the characeristic:
-  switchCharacteristic.writeValue(0);
-
-  // start advertising
-  BLE.advertise();
-
-  Serial.println("BLE LED Peripheral");
 
 }
 
@@ -533,30 +504,5 @@ if(currentTime - CR2lastEventTime >= centerring2speed){
   //Serial.print("CRIndex2:");
   //Serial.print(centerring2index);
 }
-  BLEDevice central = BLE.central();
-
-  // if a central is connected to peripheral:
-  if (central) {
-    Serial.print("Connected to central: ");
-    // print the central's MAC address:
-    Serial.println(central.address());
-
-    // while the central is still connected to peripheral:
-  while (central.connected()) {
-        if (switchCharacteristic.written()) {
-          if (switchCharacteristic.value()) {   
-            Serial.println("LED on");
-
-          } else {                              
-            Serial.println(F("LED off"));
-
-          }
-        }
-      }
-
-    // when the central disconnects, print it out:
-    Serial.print(F("Disconnected from central: "));
-    Serial.println(central.address());
-  }
   pixels.show();   // Send the updated pixel colors to the hardware.
 }
